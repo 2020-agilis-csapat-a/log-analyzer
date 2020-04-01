@@ -10,6 +10,9 @@ Welcome to Log Analyzer's documentation!
    :maxdepth: 2
    :caption: Contents:
 
+   concepts.rst
+
+* :ref:`concepts`
 
 
 Indices and tables
