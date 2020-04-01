@@ -10,7 +10,6 @@ Welcome to Log Analyzer's documentation!
    :maxdepth: 2
    :caption: Contents:
 
-* :ref:`welcome`
 
 
 Indices and tables
