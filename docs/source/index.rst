@@ -12,8 +12,6 @@ Welcome to Log Analyzer's documentation!
 
    concepts.rst
 
-* :ref:`concepts`
-
 
 Indices and tables
 ==================
