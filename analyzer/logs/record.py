@@ -49,7 +49,6 @@ class LogRecord:
 
             return fields
 
-
         major_fields = separate_major_fields(content)
         return {
             'date': major_fields[0],

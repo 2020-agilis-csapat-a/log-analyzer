@@ -61,11 +61,14 @@ class TestRecordParsing:
         sample_source_file = 'ExampleComponentTest.ttcn'
         sample_source_line = '313'
         sample_source_scope = 'function:ExampleTestedFunction'
+        sample_context = (
+            f'{sample_source_file}:{sample_source_line}({sample_source_scope})'
+        )
 
         sample_content = 'open(0x7F323232) = -1'
         sample = ' '.join([
             *header_fields.values(),
-            f'{sample_source_file}:{sample_source_line}({sample_source_scope})',
+            sample_context,
             sample_content
         ])
 
