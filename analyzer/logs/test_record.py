@@ -3,6 +3,7 @@ Unit tests for LogRecord
 """
 
 import pytest
+from analyzer.logs.record import LogRecord, line_begins_with_record_header
 
 
 @pytest.fixture
@@ -106,3 +107,14 @@ class TestRecordParsing:
 
     def test_parse_singleline_sample_success(self, sample_singleline_record):
         self.assert_record_matches_sample(sample_singleline_record)
+
+
+class TestRecordStringHeuristics:
+
+    def test_header_detection_positive(self, sample_singleline_record):
+        sample = sample_singleline_record['sample']
+        assert line_begins_with_record_header(sample)
+
+    def test_header_detection_negative(self, sample_singleline_record):
+        sample = 'Once upon a time, in a galaxy far, far away...'
+        assert not line_begins_with_record_header(sample)

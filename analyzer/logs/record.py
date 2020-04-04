@@ -127,3 +127,8 @@ class LogRecord:
         assert m, 'Could not parse log record.'
 
         return m.groupdict()
+
+
+def line_begins_with_record_header(string: str) -> bool:
+    from re import match, X
+    return match(f'\\A{LogRecord.HEADER_PATTERN}', string, X)
