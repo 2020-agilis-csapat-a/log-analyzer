@@ -40,6 +40,15 @@ def sample_singleline_record():
     }
 
 
+@pytest.fixture
+def sample_multiline_record(sample_singleline_record):
+    additional_line = f'\nHello there!'
+    template = {**sample_singleline_record}
+    template['sample_content'] += additional_line
+    template['sample'] += additional_line
+    return template
+
+
 class TestRecordParsing:
 
     def test_parse_none_fails(self):
@@ -107,6 +116,9 @@ class TestRecordParsing:
 
     def test_parse_singleline_sample_success(self, sample_singleline_record):
         self.assert_record_matches_sample(sample_singleline_record)
+
+    def test_parse_multiline_sample_success(self, sample_multiline_record):
+        self.assert_record_matches_sample(sample_multiline_record)
 
 
 class TestRecordStringHeuristics:
