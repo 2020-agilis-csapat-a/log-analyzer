@@ -8,11 +8,14 @@ from typing import Dict, List
 class LogRecord:
 
     # NOTE: This pattern is meant to be used with the 'x' flag.
+    # Either a '-' indicating no known scope, or a location in a source file.
     SCOPE_PATTERN = r"""
+    (?:
         (?P<source_file> [^:]+)
         :
         (?P<source_line> \d+)
         \( (?P<source_scope>\S+) \)
+    ) | (?:-)
     """
 
     # NOTE: This pattern is meant to be used with the 'x' flag.

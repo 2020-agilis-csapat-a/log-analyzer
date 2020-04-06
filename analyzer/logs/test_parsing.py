@@ -18,6 +18,18 @@ def sample_line() -> str:
     ])
 
 
+@pytest.fixture
+def sample_line_without_scope() -> str:
+    return ' '.join([
+        '2014/Oct/24',
+        '19:16:48.062933',
+        '111',
+        'SYSCALL',
+        '-',
+        'open(0x7F323232) = -1'
+    ])
+
+
 class TestRecordSeparation:
 
     def test_garbage_yields_no_records(self):
@@ -35,6 +47,14 @@ class TestRecordSeparation:
 
         assert len(lines_by_record) == 1
         assert lines_by_record[0] == lines
+
+    def test_yields_valid_scopeless(self, sample_line_without_scope):
+        lines = [sample_line_without_scope] * 2
+        lines_by_record = [*gather_records(lines)]
+
+        assert len(lines_by_record) == 2
+        assert lines_by_record[0] == [sample_line_without_scope]
+        assert lines_by_record[1] == [sample_line_without_scope]
 
     def test_yields_valid_multiple_singleline_records(self, sample_line):
         record_lines = [sample_line]
