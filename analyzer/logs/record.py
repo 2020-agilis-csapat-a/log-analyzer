@@ -86,7 +86,10 @@ class LogRecord:
         'scope_pattern': SCOPE_PATTERN
     })
 
-    def __init__(self, content: str):
+    def __init__(self, content: str = None):
+        if content == None:
+            return
+
         fields = LogRecord.parse_string(content)
 
         self.date = fields['date']

@@ -50,6 +50,8 @@ def sample_multiline_record(sample_singleline_record):
 
 
 class TestRecordParsing:
+    def test_parameterless_constructor_works(self):
+        assert LogRecord()
 
     def test_parse_none_fails(self):
         with pytest.raises(AssertionError) as e:
