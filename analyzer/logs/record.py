@@ -87,7 +87,7 @@ class LogRecord:
     })
 
     def __init__(self, content: str = None):
-        if content == None:
+        if content is None:
             return
 
         fields = LogRecord.parse_string(content)

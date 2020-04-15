@@ -4,13 +4,12 @@
 
 import pytest
 
-from analyzer.util import AutovivifiedDict
 from analyzer.pipeline.stage import PipelineStage, PipelineStageResult
 
 
 def test_stage_needs_a_name():
     with pytest.raises(AssertionError) as e:
-        stage = PipelineStage(name=None)
+        PipelineStage(name=None)
 
     assert e.match("Stage must be given a name")
 
