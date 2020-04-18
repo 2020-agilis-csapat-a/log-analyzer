@@ -4,7 +4,7 @@
 
 import pytest
 
-from analyzer.pipeline.stage import PipelineStage, PipelineStageResult
+from analyzer.pipeline.stage import PipelineStageResult
 
 
 def test_stage_result_tags_are_immutable():

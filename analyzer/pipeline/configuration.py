@@ -5,7 +5,6 @@
 
 from typing import Dict, Iterable
 
-from analyzer.logs.record import LogRecord
 from analyzer.pipeline.stage import PipelineStage, PipelineStageResult
 
 from util import topological_sort
