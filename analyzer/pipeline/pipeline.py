@@ -4,6 +4,38 @@
     that may be used in a streaming manner.
 """
 
+from analyzer.logs.record import LogRecord
+from analyzer.pipeline.configuration import PipelineConfiguration
+from analyzer.pipeline.stage import PipelineStageResult
+
 
 class Pipeline:
-    pass
+    def __init__(self, config: PipelineConfiguration):
+        from util import import_from
+        self._configuration = config
+        stages = []
+
+        for stage_def in self._configuration.stages_in_order():
+            stage = import_from(stage_def.module, stage_def.klass)
+            stages.append((stage_def.name, stage()))
+
+        self._stages = stages
+
+    def process(self, record: LogRecord) -> PipelineStageResult:
+        results_so_far = PipelineStageResult()
+        for (name, stage) in self._stages:
+            try:
+                stage_results = stage.process(record, results_so_far)
+                results_so_far = PipelineStageResult(
+                    tags=[*results_so_far.tags, *stage_results.tags],
+                    structured={
+                        **results_so_far.structured,
+                        **stage_results.structured
+                    }
+                )
+            except Exception as e:
+                # TODO: Error logging,
+                # do not abort processing due to a single record.
+                raise e
+
+        return results_so_far

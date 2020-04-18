@@ -8,21 +8,55 @@ from typing import Dict, Iterable
 from analyzer.logs.record import LogRecord
 from analyzer.pipeline.stage import PipelineStage, PipelineStageResult
 
+from util import topological_sort
+
+
+# We are not reusing PipelineStage,
+# because we call toposort before stage instantiation.
+# Otherwise we could be calling 3rd party before config validation!
+class PipelineStageDefiniton:
+    def __init__(self,
+                 module: str,
+                 klass: str,
+                 name: str,
+                 dependencies: Iterable[str]):
+
+        self.module = module
+        self.klass = klass
+        self.name = name
+        self.dependencies = dependencies
+
 
 class PipelineConfiguration:
+    """
+        This class represents a parsed and validated pipeline configuration.
+    """
+    EXPECTED_STAGE_KEYS = ('module', 'class', 'depends_on')
+
     def __init__(self, stages: Dict[str, dict]):
         from pprint import pformat
         assert stages, 'A pipeline must have at least one stage'
 
+        all_names = stages.keys()
+        unique_names = set(all_names)
+        assert all_names == unique_names, 'All stages must have unique names'
+
         errors = []
+        validated = []
         for stage, config in stages.items():
             err = PipelineConfiguration.is_stage_config_valid(config)
             if err:
                 errors.append(f'{stage}: {err}')
                 continue
+            validated.append(PipelineStageDefiniton(
+                module=config['module'],
+                klass=config['class'],
+                name=stage,
+                dependencies=config.get('depends_on', [])
+            ))
 
         assert not errors, pformat(errors)
-        self._stages = stages
+        self._stages = validated
 
     @property
     def stages(self) -> Dict[str, PipelineStage]:
@@ -31,21 +65,18 @@ class PipelineConfiguration:
 
     @staticmethod
     def is_stage_config_valid(c: Dict[str, dict]) -> Iterable[str]:
-        # TODO: Where in the python3 stdlib is the module type defined?
-        # Add a type hint if possible, or remove this comment if it is not.
-        def import_stage(mod: str, cls: str):
-            from importlib import __import__ as _import
-            imported = _import(mod, globals(), locals(), [cls], 0)
-            return imported.__dict__[cls]
-
         def ensure_target_is_stage() -> Iterable[str]:
             mod = c['module']
             cls = c['class']
 
+            for config_key in c:
+                assert config_key in PipelineConfiguration.EXPECTED_STAGE_KEYS
+
             try:
-                stage_t = import_stage(mod, cls)
+                from util import import_from
+                stage_t = import_from(mod, cls)
                 stage = stage_t()
-                stage_result = stage.process(LogRecord())
+                stage_result = stage.process(record=None, state=None)
 
                 assert isinstance(stage_result, PipelineStageResult), (
                     'Does not return a PipelineStageResult'
@@ -63,3 +94,14 @@ class PipelineConfiguration:
             )
             if error_message is not None
         ]
+
+    def stages_in_order(self):
+        def get_dependencies(stage):
+            return [
+                dep
+                for dep
+                in self._stages
+                if dep.name in stage.dependencies
+            ]
+
+        return topological_sort(self._stages, get_dependencies)

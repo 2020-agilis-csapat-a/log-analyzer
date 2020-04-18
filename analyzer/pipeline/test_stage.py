@@ -7,34 +7,6 @@ import pytest
 from analyzer.pipeline.stage import PipelineStage, PipelineStageResult
 
 
-def test_stage_needs_a_name():
-    with pytest.raises(AssertionError) as e:
-        PipelineStage(name=None)
-
-    assert e.match("Stage must be given a name")
-
-
-def test_stage_has_immutable_name():
-    stage = PipelineStage(name='ReadMe')
-
-    with pytest.raises(AttributeError) as e:
-        stage.name = 'fail!'
-
-    assert e.match("can't set attribute")
-    assert stage.name == 'ReadMe'
-
-
-def test_stage_has_immutable_dependencies():
-    deps = ['nothing_really']
-    stage = PipelineStage(name='ReadMe', depends_on=deps)
-
-    with pytest.raises(AttributeError) as e:
-        stage.dependencies = []
-
-    assert e.match("can't set attribute")
-    assert stage.dependencies == deps
-
-
 def test_stage_result_tags_are_immutable():
     tags = ['actual-results']
     res = PipelineStageResult(tags=tags)

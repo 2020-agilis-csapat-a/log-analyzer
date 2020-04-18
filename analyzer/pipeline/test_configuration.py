@@ -11,15 +11,14 @@ from analyzer.pipeline.stage import PipelineStage, PipelineStageResult
 
 
 class MockPipelineStage(PipelineStage):
-    def __init__(self):
-        super(type(self), self).__init__(self, 'MockStage')
-
-    def process(self, record: LogRecord) -> PipelineStageResult:
+    def process(self,
+                record: LogRecord,
+                state: PipelineStageResult) -> PipelineStageResult:
         return PipelineStageResult()
 
 
 class MockNotStage:
-    def process(self, *args):
+    def process(self, *args, **kwargs):
         pass
 
 
@@ -33,7 +32,12 @@ class TestPipelineConfiguration:
         }
 
         config = PipelineConfiguration(mock_config)
-        assert [*config.stages.keys()] == ['mock_stage']
+        stages = config.stages
+
+        assert len(stages) == 1
+        assert stages[0].name == 'mock_stage'
+        assert stages[0].module == 'analyzer.pipeline.test_configuration'
+        assert stages[0].klass == 'MockPipelineStage'
 
     def test_not_stage_is_not_accepted(self):
         mock_config = {
@@ -47,3 +51,31 @@ class TestPipelineConfiguration:
             PipelineConfiguration(mock_config)
 
         e.match('Does not return a PipelineStage')
+
+    def test_sorts_example_pipeline_successfully(self):
+        mock_config = {
+            'mock_stage_x2': {
+                'module': 'analyzer.pipeline.test_configuration',
+                'class': 'MockPipelineStage',
+                'depends_on': 'mock_stage_z1'
+            },
+            'mock_stage_y0': {
+                'module': 'analyzer.pipeline.test_configuration',
+                'class': 'MockPipelineStage'
+            },
+            'mock_stage_z1': {
+                'module': 'analyzer.pipeline.test_configuration',
+                'class': 'MockPipelineStage',
+                'depends_on': 'mock_stage_y0'
+            }
+        }
+
+        config = PipelineConfiguration(mock_config)
+        assert len(config.stages) == 3
+
+        ordered = config.stages_in_order()
+
+        assert len(ordered) == 3
+        assert ordered[0].name == 'mock_stage_y0'
+        assert ordered[1].name == 'mock_stage_z1'
+        assert ordered[2].name == 'mock_stage_x2'

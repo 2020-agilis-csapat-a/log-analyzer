@@ -63,27 +63,15 @@ class PipelineStage:
         certain accidents from happening through immutability.
     """
 
-    def __init__(self, name: str, depends_on: Iterable[str] = []):
-        assert name, 'Stage must be given a name'
-
-        self._name = name
-        self._dependencies = [*depends_on]
-
-    @property
-    def name(self) -> str:
-        return self._name
-
-    @property
-    def dependencies(self) -> Iterable[str]:
-        from copy import deepcopy
-        return deepcopy(self._dependencies)
-
     @abstractmethod
-    def process(self, record: LogRecord) -> PipelineStageResult:
+    def process(self,
+                record: LogRecord,
+                state: PipelineStageResult = None) -> PipelineStageResult:
         """
             This method *MUST* be overriden by descendants.
             This is the entry point where the pipeline calls into a stage.
 
             :param record: A log record to process.
+            :param state: The combined result of all previous stages, if any.
             :returns: A PipelineStageResult that may contain tags or data.
         """
