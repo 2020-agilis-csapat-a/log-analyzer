@@ -5,7 +5,7 @@
 
 from typing import Dict, Iterable
 
-from analyzer.pipeline.stage import PipelineStage, PipelineStageResult
+from analyzer.pipeline.stage import PipelineStage, PipelineStageResult  # noqa F401
 
 from analyzer.util import topological_sort
 

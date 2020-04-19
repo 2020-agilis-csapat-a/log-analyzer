@@ -10,6 +10,7 @@ COMPONENT_NAMESPACE = 'hu.analyzer.component'
 COMPONENT_ID_PATTERN = r'component\sreference:\s(?P<component_id>\d+)'
 COMPONENT_TYPE_PATTERN = r'type:\s(?P<component_type>[\w\d]+(?:\.[\w\d]+))'
 
+
 class TagComponentIDs(PipelineStage):
     def process(self,
                 record: LogRecord,
