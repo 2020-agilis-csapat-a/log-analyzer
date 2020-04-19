@@ -7,7 +7,7 @@ from typing import Dict, Iterable
 
 from analyzer.pipeline.stage import PipelineStage, PipelineStageResult
 
-from util import topological_sort
+from analyzer.util import topological_sort
 
 
 # We are not reusing PipelineStage,
@@ -72,14 +72,10 @@ class PipelineConfiguration:
                 assert config_key in PipelineConfiguration.EXPECTED_STAGE_KEYS
 
             try:
-                from util import import_from
+                from analyzer.util import import_from
                 stage_t = import_from(mod, cls)
                 stage = stage_t()
-                stage_result = stage.process(record=None, state=None)
-
-                assert isinstance(stage_result, PipelineStageResult), (
-                    'Does not return a PipelineStageResult'
-                )
+                assert isinstance(stage, PipelineStage)
             except Exception as e:
                 return [f'{mod}.{cls}: Not a PipelineStage: {str(e)}']
 

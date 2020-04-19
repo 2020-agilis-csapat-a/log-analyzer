@@ -11,7 +11,7 @@ from analyzer.pipeline.stage import PipelineStageResult
 
 class Pipeline:
     def __init__(self, config: PipelineConfiguration):
-        from util import import_from
+        from analyzer.util import import_from
         self._configuration = config
         stages = []
 
@@ -34,8 +34,23 @@ class Pipeline:
                     }
                 )
             except Exception as e:
-                # TODO: Error logging,
-                # do not abort processing due to a single record.
-                raise e
+                raise Exception(f'stage {name}: {str(e)}')
 
         return results_so_far
+
+
+if __name__ == '__main__':
+    from sys import argv, stdin, stderr
+    if len(argv) != 2:
+        print(f'\nUsage: {argv[0]} <pipeline.yml>', file=stderr)
+        exit(1)
+
+    import yaml
+    from analyzer.logs.parsing import gather_records
+    config_yml = yaml.safe_load(open(argv[1], 'rb').read())
+    config = PipelineConfiguration(config_yml)
+    pipeline = Pipeline(config)
+
+    for record_lines in gather_records(stdin):
+        record = LogRecord('\n'.join(record_lines))
+        pipeline.process(record)
