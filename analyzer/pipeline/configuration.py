@@ -33,7 +33,6 @@ class PipelineConfiguration:
     EXPECTED_STAGE_KEYS = ('module', 'class', 'depends_on')
 
     def __init__(self, stages: Dict[str, dict]):
-        from pprint import pformat
         assert stages, 'A pipeline must have at least one stage'
 
         all_names = stages.keys()
@@ -54,7 +53,8 @@ class PipelineConfiguration:
                 dependencies=config.get('depends_on', [])
             ))
 
-        assert not errors, pformat(errors)
+        if errors:
+            raise Exception(errors)
         self._stages = validated
 
     @property

@@ -47,10 +47,10 @@ class TestPipelineConfiguration:
             }
         }
 
-        with pytest.raises(AssertionError) as e:
+        with pytest.raises(Exception) as e:
             PipelineConfiguration(mock_config)
 
-        e.match('Does not return a PipelineStage')
+        e.match('Not a PipelineStage')
 
     def test_sorts_example_pipeline_successfully(self):
         mock_config = {
