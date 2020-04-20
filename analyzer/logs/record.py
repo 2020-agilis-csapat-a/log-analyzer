@@ -101,7 +101,7 @@ class LogRecord:
             'line': fields['source_line'],
             'scope': fields['source_scope'],
         }
-        self.content = fields['content']
+        self.content = fields['content'] or ''
 
     @staticmethod
     def parse_scope(content: str) -> Dict[str, str]:
