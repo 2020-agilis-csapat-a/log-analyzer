@@ -30,7 +30,7 @@ def gather_records(input_lines: Iterable[str]) -> List[str]:
                 record_buffer = []
 
         if record_start or len(record_buffer) > 0:
-            record_buffer.append(line)
+            record_buffer.append(line.rstrip())
 
     if len(record_buffer) > 0:
         yield record_buffer
