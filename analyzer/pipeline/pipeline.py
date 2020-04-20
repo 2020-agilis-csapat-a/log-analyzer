@@ -37,4 +37,3 @@ class Pipeline:
                 raise Exception(f'stage {name}: {str(e)}')
 
         return results_so_far
-        
