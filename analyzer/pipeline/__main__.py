@@ -1,8 +1,8 @@
 '''
 Main file for module
 '''
-from sys import argv, stdin, stderr
 
+from sys import argv, stdin, stderr
 from analyzer.pipeline.configuration import PipelineConfiguration
 from analyzer.pipeline.pipeline import Pipeline
 from analyzer.logs.record import LogRecord
