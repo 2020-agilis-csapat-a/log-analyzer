@@ -1,0 +1,24 @@
+tag_log_records_with_component_ids:
+    module: analyzer.application.stages
+    class: TagComponentIDs
+
+extract_component_ids:
+    module: analyzer.application.stages
+    class: ExtractComponentIDs
+    depends_on: tag_log_records_with_component_ids
+
+segregate_sdata:
+    module: analyzer.application.stages.sdata
+    class: SegregateSdata
+
+parse_sdata:
+    module: analyzer.application.stages.sdata
+    class: ParseSdata
+    depends_on: segregate_sdata
+
+print_results_to_stderr:
+    module: analyzer.application.stages
+    class: EmitResultToStdoutJsonL
+    depends_on:
+      - extract_component_ids
+      - parse_sdata
