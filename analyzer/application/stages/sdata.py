@@ -1,15 +1,16 @@
-from typing import Union, Tuple
+import string
+from typing import Dict, List, Tuple, Union
 
 from analyzer.pipeline.stage import PipelineStage, PipelineStageResult
 from analyzer.logs.record import LogRecord
 
-import string
 
 STRUCTURED_DATA_PATTERN = r"(?P<sdata>\{(?:.|\n)*:=(?:.|\n)*\})"
 STRUCTURED_DATA_NAMESPACE = 'hu.analyzer.sdata'
-STRUCTURED_DATA_AS_STRING = 'hu.analyzer.sdata.string'
-STRUCTURED_DATA_AS_JSON = 'hu.analyzer.sdata.json'
-STRUCTURED_DATA = 'hu.analyzer.sdata.data'
+STRUCTURED_DATA_AS_STRING = f'{STRUCTURED_DATA_NAMESPACE}.string'
+STRUCTURED_DATA = f'{STRUCTURED_DATA_NAMESPACE}.data'
+
+SDATA_QUOTES = ('\"', '\'')
 
 
 class SegregateSdata(PipelineStage):
@@ -33,76 +34,197 @@ class ParseSdata(PipelineStage):
             return PipelineStageResult()
 
         sdata_str = state.structured[STRUCTURED_DATA_AS_STRING]
-        sdata = self.parse_object(sdata_str)
+        sdata, _ = self.parse_object(sdata_str)
 
         return PipelineStageResult(structured={
             STRUCTURED_DATA: sdata
         })
 
-    def parse_object(self, from_str: str):
-        for c in from_str[1:]:
-            if c in string.whitespace:
-                next
+    def parse_object(self, from_str: str) -> Tuple[object, str]:
+        some_object = False
+        for i, c in enumerate(from_str):
 
+            # Empty map.
+            # (Well, empty object, we have no schema.)
+            if c == '}':
+                return {}, from_str[i+1:]
+
+            skippable = string.whitespace + '\r\n,'
+            if c in skippable:
+                continue
+
+            if some_object:
+                # Unqouted string => key
+                # We are inside a map.
+                if c in string.ascii_letters:
+                    return self.parse_dict(from_str)
+            else:
+                # Booleans
+                # Keys are unqouted,
+                # and nothing says you can't have a key named 'true'!
+                # So only parse these if we are not in an aggregate.
+                if c in 'fF' and from_str[i:].lower().startswith('false'):
+                    return False, from_str[i+len('false'):]
+                if c in 'tT' and from_str[i:].lower().startswith('true'):
+                    return True, from_str[i+len('true'):]
+
+            # Parsing a number
             if c in string.digits:
                 from re import match
-                num_match = match(r'\d+(?:\.\d+)?', from_str[1:])
-                return float(num_match.group(0)), ''
+                num_match = match(r'(\d+)(?:\.\d+)?', from_str[i:])
+                assert num_match
+                num_str = num_match.group(0)
 
-            # TODO: This is probably the spot where our next bug lies.
-            if c in '"':
-                from re import match
-                str_ = match(r'"(?:\"|.)"')
-                return str_.match(0), ''
+                if '.' in num_str:
+                    # Real number
+                    num = float(num_str)
+                else:
+                    # Integer
+                    num = int(num_str)
 
-            if c == '{':
-                return self.parse_list(from_str), ''
+                return num, from_str[i+len(num_str):]
 
-            if c == '}':
-                return [], ''
+            # Quotes found => string!
+            # Well, almost.
+            # Judging by the syntax,
+            # it should be possible to do this:
+            #   { "list", "of", "strings" }
+            # We have to check the first char in
+            # the object to see if we are in a list,
+            # or we are just parsing a string literal
+            # on its own.
+            # There are also 'stringlike' objects.
+            if c in SDATA_QUOTES:
+                if some_object:
+                    # List of stringlikes.
+                    return self.parse_list(from_str)
+                else:
+                    # Actual stringlike.
+                    obj, rem = self.parse_stringlike(from_str[i:])
+                    return obj, rem
 
-            return self.parse_dict(from_str)
-        return {}, ''
+            # We are a list, because we found an object without key.
+            if c == '{' and i == 0:
+                some_object = True
+                continue
+            else:
+                return self.parse_list(from_str)
 
-    def parse_list(self, from_str: str):
-        parsed = []
+            # Fail early and hard on unhandled input,
+            # so we know we have to fix the parser!
+            # Not having any coverage on these lines
+            # for valid test inputs is a *GOOD* thing!
+            assert False, from_str
+        assert False, from_str
+
+    def parse_list(self, from_str: str) -> Tuple[List[object], str]:
+        parsed: List[object] = []
         curr = from_str[1:]
 
         while curr:
+            cont = False
             for i, c in enumerate(curr):
-                if c == ',':
-                    next
+                if c == '}':
+                    return parsed, curr[i+1:]
 
-                if c not in string.whitespace:
+                if c == ',':
+                    continue
+
+                if c not in (*string.whitespace, '\r', '\n'):
                     p, rem = self.parse_object(curr[i:])
                     parsed.append(p)
                     curr = rem
+                    cont = True
+                    break
 
-                if c == '}':
-                    return parsed, curr[i:]
+            if not cont:
+                break
 
-    def parse_dict(self, from_str: str):
-        parsed = {}
-        curr = from_str[1:]
+        return parsed, curr
+
+    def parse_dict(self,
+                   from_str: str) -> Tuple[Dict[str, object], str]:
+        parsed: Dict[str, object] = {}
+        curr = from_str
 
         while curr:
+            cont = False
             for i, c in enumerate(curr):
-                if c in string.whitespace:
-                    next
-
-                if c == ',':
-                    next
+                if c == '}':
+                    return parsed, curr[i+1:]
 
                 if c in string.ascii_letters:
                     pieces = curr[i:].split(maxsplit=2)
-                    try:
-                        key, rem = pieces[0], pieces[-1]
-                    except:
-                        print(f'~~~~{from_str}')
-                        assert False
-                    val, rem = self.parse_object(rem)
+                    key, rem = pieces[0], pieces[2]
+                    nil, nil_len = self.is_nil(rem)
+                    if nil:
+                        val, rem = None, rem[nil_len:]
+                    else:
+                        val, rem = self.parse_object(rem)
                     parsed[key] = val
                     curr = rem
+                    cont = True
+                    break
 
-                if c == '}':
-                    return parsed, curr[i:]
+                cont = True
+
+            if not cont:
+                break
+
+        return parsed, curr
+
+    def parse_stringlike(self,
+                         from_str: str
+                         ) -> Tuple[Union[str, Dict[str, str]], str]:
+        str_, rem = self.parse_string(from_str)
+        if rem.startswith('O'):
+            hex_ = str_
+            rem = rem[1:].lstrip()
+            str_, rem = self.parse_parens(rem)
+            return {
+                'hex': hex_,
+                'plain': str_
+            }, rem
+
+        return str_, rem
+
+    def parse_parens(self, from_str: str) -> Tuple[str, str]:
+        pars = 1
+        seek = 1
+        while pars > 0:
+            if from_str[seek] == '\\':
+                seek += 2
+                continue
+
+            if from_str[seek] == ')':
+                pars -= 1
+            elif from_str[seek] == '(':
+                pars += 1
+
+            seek += 1
+        str_ = from_str[1:seek-1:]
+        return str_, from_str[seek:]
+
+    def parse_string(self, from_str: str) -> Tuple[str, str]:
+        quote_stack = [from_str[0]]
+        seek = 1
+        while quote_stack:
+            if from_str[seek] == '\\':
+                seek += 2
+                continue
+
+            if from_str[seek] == quote_stack[-1]:
+                quote_stack = quote_stack[:-1]
+            elif from_str[seek] in SDATA_QUOTES:
+                quote_stack.append(from_str[seek])
+
+            seek += 1
+        str_ = from_str[1:seek-1]
+        return str_, from_str[seek:]
+
+    def is_nil(self, from_str: str) -> Tuple[bool, int]:
+        nils = ('omit', '<unbound>')
+        for nil in nils:
+            if from_str.startswith(nil):
+                return True, len(nil)
+        return False, 0
