@@ -1,6 +1,5 @@
 import string
 from typing import Dict, List, Tuple, Union
-from sys import stderr
 
 from analyzer.pipeline.stage import PipelineStage, PipelineStageResult
 from analyzer.logs.record import LogRecord
