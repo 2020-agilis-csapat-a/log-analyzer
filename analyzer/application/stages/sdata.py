@@ -1,5 +1,6 @@
 import string
 from typing import Dict, List, Tuple, Union
+from sys import stderr
 
 from analyzer.pipeline.stage import PipelineStage, PipelineStageResult
 from analyzer.logs.record import LogRecord
@@ -68,10 +69,14 @@ class ParseSdata(PipelineStage):
                 if c in 'tT' and from_str[i:].lower().startswith('true'):
                     return True, from_str[i+len('true'):]
 
+                # So, there are some serialized 'named values', too.
+                if c in string.ascii_letters:
+                    return self.parse_enum(from_str)
+
             # Parsing a number
-            if c in string.digits:
+            if c in ('-', *string.digits):
                 from re import match
-                num_match = match(r'(\d+)(?:\.\d+)?', from_str[i:])
+                num_match = match(r'(-?\d+)(?:\.\d+)?', from_str[i:])
                 assert num_match
                 num_str = num_match.group(0)
 
@@ -228,3 +233,12 @@ class ParseSdata(PipelineStage):
             if from_str.startswith(nil):
                 return True, len(nil)
         return False, 0
+
+    def parse_enum(self, from_str: str) -> Tuple[dict, str]:
+        pieces = from_str.split(maxsplit=1)
+        name, rem = pieces[0], pieces[1]
+        value, rem = self.parse_parens(rem)
+        return {
+            'name': name,
+            'value': value
+        }, rem

@@ -15,7 +15,9 @@ def mapstr():
         string := "Read me",
         empty_object := {}
         integer := 42,
+        negative_integer := -42,
         real := 42.0,
+        negative_real := -42.0,
         list := {
             "we are now",
             "getting",
@@ -25,6 +27,7 @@ def mapstr():
             map := "this one is"
         }
         weirdo_data := '4865786C696679206D65'O (Hexlify me)
+        named_value := NAME (0x42),
         undefined := <unbound>,
         also_undefined := omit,
     }"""
@@ -49,6 +52,8 @@ def test_parse_map(mapstr):
         'string': 'Read me',
         'integer': 42,
         'real': 42.0,
+        'negative_integer': -42,
+        'negative_real': -42.0,
         'list': [
             'we are now',
             'getting',
@@ -61,6 +66,10 @@ def test_parse_map(mapstr):
         'weirdo_data': {
             'hex': '4865786C696679206D65',
             'plain': 'Hexlify me'
+        },
+        'named_value': {
+            'name': 'NAME',
+            'value': '0x42'  # TODO: Currently always treated as string
         },
         'undefined': None,
         'also_undefined': None
