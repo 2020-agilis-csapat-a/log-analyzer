@@ -16,9 +16,14 @@ parse_sdata:
     class: ParseSdata
     depends_on: segregate_sdata
 
-print_results_to_stderr:
-    module: analyzer.application.stages
-    class: EmitResultToStdoutJsonL
-    depends_on:
-      - extract_component_ids
-      - parse_sdata
+find_network_connections:
+    module: analyzer.application.stages.connections
+    class: IdentifyConnectionsByPort
+    depends_on: parse_sdata
+    
+#print_results_to_stderr:
+ #   module: analyzer.application.stages
+  #  class: EmitResultToStdoutJsonL
+   # depends_on: find_network_connections
+
+

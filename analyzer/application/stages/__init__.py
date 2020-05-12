@@ -19,3 +19,4 @@ class EmitResultToStdoutJsonL(PipelineStage):
             'results': state.__dict__
         }), file=stdout)
         return PipelineStageResult()
+

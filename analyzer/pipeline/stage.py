@@ -51,7 +51,11 @@ class PipelineStageResult:
     def structured(self):
         from copy import deepcopy
         return AutovivifiedDict(deepcopy(self._structured))
-
+    def __str__(self):
+        import json
+        return(json.dumps({
+            'record': self.structured
+        }))
 
 class PipelineStage:
     """
