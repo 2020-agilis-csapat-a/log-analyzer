@@ -1,7 +1,7 @@
 from analyzer.pipeline.stage import PipelineStage, PipelineStageResult
 from analyzer.logs.record import LogRecord
 
-STRUCTURED_DATA_PATTERN_ID = 'id\s+(?P<object_id>\d+)$'
+STRUCTURED_DATA_PATTERN_ID = r'id\s+(?P<object_id>\d+)$'
 MSG_ID = 'message_id'
 
 

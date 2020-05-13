@@ -2,7 +2,7 @@ from analyzer.pipeline.stage import PipelineStage, PipelineStageResult
 from analyzer.logs.record import LogRecord
 from analyzer.application.stages.sdata import STRUCTURED_DATA as STRUCT_D
 
-CONNECTION_KEY = 'connections'
+CONN_KEY = 'connections'
 
 
 class IdentifyConnectionsByPort(PipelineStage):
@@ -19,8 +19,8 @@ class IdentifyConnectionsByPort(PipelineStage):
                 conn['rem_name'] = state['connOpened']['remName']
                 conn['rem_port'] = state['connOpened']['remPort']
                 conn['loc_name'] = state['connOpened']['locName']
-                conn['loc_port'] = state['connOpened']['locPort']                
-                CONN_RESULT = PipelineStageResult(structured={CONNECTION_KEY:conn})
+                conn['loc_port'] = state['connOpened']['locPort']
+                CONN_RESULT = PipelineStageResult(structured={CONN_KEY: conn})
 
                 return CONN_RESULT
 
@@ -31,7 +31,7 @@ class IdentifyConnectionsByPort(PipelineStage):
                 conn['rem_port'] = state['remPort']
                 conn['loc_name'] = state['locName']
                 conn['loc_port'] = state['locPort']
-                CONN_RESULT = PipelineStageResult(structured={CONNECTION_KEY:conn})
+                CONN_RESULT = PipelineStageResult(structured={CONN_KEY: conn})
                 return CONN_RESULT
 
         return PipelineStageResult()
