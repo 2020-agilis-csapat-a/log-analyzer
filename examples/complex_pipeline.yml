@@ -20,10 +20,15 @@ find_network_connections:
     module: analyzer.application.stages.connections
     class: IdentifyConnectionsByPort
     depends_on: parse_sdata
-    
-#print_results_to_stderr:
- #   module: analyzer.application.stages
-  #  class: EmitResultToStdoutJsonL
-   # depends_on: find_network_connections
 
+identify_message:
+    module: analyzer.application.stages.msg_id
+    class: IdentifyMessage  
+
+print_results_to_stderr:
+    module: analyzer.application.stages
+    class: EmitResultToStdoutJsonL
+    depends_on: 
+        - find_network_connections
+        - identify_message
 

@@ -1,12 +1,8 @@
 from analyzer.pipeline.stage import PipelineStage, PipelineStageResult
 from analyzer.logs.record import LogRecord
+from analyzer.application.stages.sdata import STRUCTURED_DATA as STRUCT_D
 
-
-STRUCTURED_DATA_NAMESPACE = 'hu.analyzer.sdata'
-STRUCTURED_DATA_AS_STRING = f'{STRUCTURED_DATA_NAMESPACE}.string'
-STRUCT_D = f'{STRUCTURED_DATA_NAMESPACE}.data'
-ID_CONN = 'conn'
-CONN = {}
+CONNECTION_KEY = 'connections'
 
 
 class IdentifyConnectionsByPort(PipelineStage):
@@ -16,26 +12,26 @@ class IdentifyConnectionsByPort(PipelineStage):
 
         if not type(state.structured[STRUCT_D]) == list:
             state = state.structured[STRUCT_D]
+            conn = {}
             if 'connOpened' in state:
 
-                CONN[ID_CONN] = {}
-                CONN[ID_CONN]['rem_name'] = state['connOpened']['remName']
-                CONN[ID_CONN]['rem_port'] = state['connOpened']['remPort']
-                CONN[ID_CONN]['loc_name'] = state['connOpened']['locName']
-                CONN[ID_CONN]['loc_port'] = state['connOpened']['locPort']
-                CONN_RESULT = PipelineStageResult(structured=CONN)
-                print(CONN_RESULT)
+                conn = {}
+                conn['rem_name'] = state['connOpened']['remName']
+                conn['rem_port'] = state['connOpened']['remPort']
+                conn['loc_name'] = state['connOpened']['locName']
+                conn['loc_port'] = state['connOpened']['locPort']                
+                CONN_RESULT = PipelineStageResult(structured={CONNECTION_KEY:conn})
+
                 return CONN_RESULT
 
             elif state and 'remName' in state and 'locName' in state:
 
-                CONN[ID_CONN] = {}
-                CONN[ID_CONN]['rem_name'] = state['remName']
-                CONN[ID_CONN]['rem_port'] = state['remPort']
-                CONN[ID_CONN]['loc_name'] = state['locName']
-                CONN[ID_CONN]['loc_port'] = state['locPort']
-                CONN_RESULT = PipelineStageResult(structured=CONN)
-                print(CONN_RESULT)
+                conn = {}
+                conn['rem_name'] = state['remName']
+                conn['rem_port'] = state['remPort']
+                conn['loc_name'] = state['locName']
+                conn['loc_port'] = state['locPort']
+                CONN_RESULT = PipelineStageResult(structured={CONNECTION_KEY:conn})
                 return CONN_RESULT
 
         return PipelineStageResult()
