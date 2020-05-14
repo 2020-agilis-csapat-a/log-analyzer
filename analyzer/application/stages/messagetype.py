@@ -16,7 +16,7 @@ class IdentifyMessageType(PipelineStage):
             sdata = state.structured[STRUCTURED_DATA]
             # FIXME: assumes exactly zero or one instances in the list.
             for asp in sdata.get('aspsSip', []):
-                if not 'aspRequest' in asp:
+                if 'aspRequest' not in asp:
                     return PipelineStageResult()
 
                 req = asp['aspRequest']
