@@ -1,0 +1,13 @@
+tag_log_records_with_component_ids:
+    module: analyzer.application.stages
+    class: TagComponentIDs
+
+extract_component_ids:
+    module: analyzer.application.stages
+    class: ExtractComponentIDs
+    depends_on: tag_log_records_with_component_ids
+
+print_results_to_stderr:
+    module: analyzer.application.stages
+    class: EmitResultToStdoutJsonL
+    depends_on: extract_component_ids
