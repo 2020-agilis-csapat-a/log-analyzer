@@ -25,10 +25,18 @@ identify_message:
     module: analyzer.application.stages.msg_id
     class: IdentifyMessage  
 
+identify_message_type:
+    module: analyzer.application.stages.messagetype
+    class: IdentifyMessageType
+    depends_on:
+      - identify_message
+      - parse_sdata
+
 print_results_to_stderr:
     module: analyzer.application.stages
     class: EmitResultToStdoutJsonL
     depends_on: 
         - find_network_connections
         - identify_message
+        - identify_message_type
 
